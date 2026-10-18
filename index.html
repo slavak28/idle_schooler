@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111b32">
+    <title>Школьные будни</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Школьные будни">
+          <span class="brand-mark" aria-hidden="true">★</span>
+          <span>ШКОЛЬНЫЕ<br>БУДНИ</span>
+        </a>
+        <div class="school-badge">
+          <span class="badge-caption">ТВОЙ КЛАСС</span>
+          <strong id="grade-label">1 класс</strong>
+        </div>
+        <button class="icon-button" id="reset-button" type="button" title="Начать заново" aria-label="Начать заново">↻</button>
+      </header>
+
+      <section class="status-grid" aria-label="Состояние персонажа">
+        <div class="status-card">
+          <div class="status-heading"><span>Радость</span><strong id="joy-value">100</strong></div>
+          <div class="meter"><span class="meter-fill joy-fill" id="joy-bar"></span></div>
+        </div>
+        <div class="status-card">
+          <div class="status-heading"><span>Энергия</span><strong id="energy-value">90</strong></div>
+          <div class="meter"><span class="meter-fill energy-fill" id="energy-bar"></span></div>
+        </div>
+        <div class="status-card">
+          <div class="status-heading"><span>Голод</span><strong id="hunger-value">15</strong></div>
+          <div class="meter"><span class="meter-fill hunger-fill" id="hunger-bar"></span></div>
+        </div>
+        <div class="status-card">
+          <div class="status-heading"><span>Здоровье</span><strong id="health-value">100</strong></div>
+          <div class="meter"><span class="meter-fill health-fill" id="health-bar"></span></div>
+        </div>
+      </section>
+
+      <section class="school-progress" aria-label="Успеваемость">
+        <div class="progress-heading">
+          <span>Учёба</span>
+          <strong id="study-value">0 / 95</strong>
+        </div>
+        <div class="meter study-meter"><span class="meter-fill study-fill" id="study-bar"></span></div>
+      </section>
+
+      <section class="scene" aria-label="Игровая сцена">
+        <div class="scene-sky">
+          <span class="pixel-cloud cloud-one" aria-hidden="true"></span>
+          <span class="pixel-cloud cloud-two" aria-hidden="true"></span>
+          <span class="scene-sun" aria-hidden="true"></span>
+          <div class="classroom-background" aria-hidden="true">
+            <span class="classroom-clock"></span>
+            <span class="classroom-board"></span>
+            <span class="classroom-desk"></span>
+          </div>
+          <div class="cafeteria-background" aria-hidden="true">
+            <span class="cafeteria-window"></span>
+            <span class="cafeteria-table"></span>
+            <span class="cafeteria-tray"><i></i><i></i><i></i></span>
+            <span class="cafeteria-seat"></span>
+          </div>
+          <div class="scene-caption">
+            <span class="scene-kicker" id="scene-kicker">НОВЫЙ ДЕНЬ</span>
+            <h1 id="scene-title">Доброе утро!</h1>
+            <p id="scene-description">Пора просыпаться. Что будем делать сегодня?</p>
+          </div>
+          <img class="pixel-person" src="character.png" alt="Персонаж из изображения IMG_1445.jpeg">
+          <div class="scene-floor" aria-hidden="true"></div>
+          <div class="scene-clock" id="clock-label">08:00</div>
+        </div>
+      </section>
+
+      <section class="event-card" aria-live="polite">
+        <div class="event-meta">
+          <span class="day-pill" id="day-label">День 1 · Понедельник</span>
+          <span class="location-label" id="location-label">ДОМА · УТРО</span>
+        </div>
+        <h2 id="event-title">Начинается новый день</h2>
+        <p id="event-description">Сон восстановил силы. Выбери, как провести утро.</p>
+        <div class="choices" id="choices"></div>
+      </section>
+
+      <section class="journal" aria-label="Последние события">
+        <div class="journal-heading">
+          <h2>ДНЕВНИК</h2>
+          <span>ПОСЛЕДНИЕ СОБЫТИЯ</span>
+        </div>
+        <ol class="journal-list" id="journal-list"></ol>
+      </section>
+      <footer>ИГРОВОЙ ПРОТОТИП <span>·</span> ПРОГРЕСС СОХРАНЯЕТСЯ НА ЭТОМ УСТРОЙСТВЕ</footer>
+    </main>
+
+    <dialog class="modal" id="victory-dialog">
+      <div class="modal-inner">
+        <span class="victory-star" aria-hidden="true">★</span>
+        <p class="scene-kicker">БОЛЬШОЕ ДОСТИЖЕНИЕ</p>
+        <h2>Школа окончена!</h2>
+        <p>Ты прошёл все 12 классов. Впереди — новые приключения!</p>
+        <button class="choice-button primary-button" id="victory-reset" type="button">Начать новую историю</button>
+      </div>
+    </dialog>
+    <script src="game.js"></script>
+  </body>
+</html>
