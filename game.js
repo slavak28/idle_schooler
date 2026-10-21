@@ -270,6 +270,15 @@ function getLessonTask() {
       options: ["кошка", "собака", "дом"]
     };
   }
+  if (lessonNumber === 4) {
+    return {
+      subject: "Физкультура",
+      question: "Стадионная дорожка — 200 метров. Сколько метров нужно пробежать за 3 круга?",
+      answer: "600 м",
+      options: ["400 м", "600 м", "800 м"],
+      energyCost: 14
+    };
+  }
   return null;
 }
 
@@ -303,8 +312,9 @@ function doLesson(taskResult) {
   const hour = state.time;
   const studyGain = 9 + Math.floor((state.grade - 1) * 0.45);
   const bonus = taskResult?.correct ? 3 : 0;
+  const lessonEnergyCost = taskResult?.energyCost ?? 8;
   addStudy(studyGain + bonus);
-  state.energy -= 8;
+  state.energy -= lessonEnergyCost;
   state.joy -= 1;
   state.lessonsToday += 1;
   applyHourlyNeeds();
@@ -313,7 +323,7 @@ function doLesson(taskResult) {
       ? `Верно! Задание по предмету «${taskResult.subject}» решено.`
       : `Задание по предмету «${taskResult.subject}» не решено. Урок всё равно засчитан.`
     : `Урок ${state.lessonsToday} из 6: учёба +${studyGain}.`;
-  record(`${resultMessage} Учёба +${studyGain + bonus}.`, hour);
+  record(`${resultMessage} Учёба +${studyGain + bonus}, энергия −${lessonEnergyCost}.`, hour);
   state.time += 1;
   render();
 }
@@ -459,7 +469,11 @@ function renderChoices() {
         button.textContent = option;
         button.addEventListener("click", () => {
           const selected = task.options ? option : Number.parseInt(option, 10);
-          doLesson({ subject: task.subject, correct: selected === task.answer });
+          doLesson({
+            subject: task.subject,
+            correct: selected === task.answer,
+            energyCost: task.energyCost
+          });
         });
         elements.choices.append(button);
       }
@@ -488,7 +502,10 @@ function sceneCopy() {
   if (state.schoolToday && LESSON_HOURS.has(state.time)) {
     const task = getLessonTask();
     if (task) {
-      return ["ШКОЛЬНЫЙ ДЕНЬ", `${task.subject} · урок ${state.lessonsToday + 1}`, task.question, "ШКОЛА · ЗАДАНИЕ"];
+      const energyNote = task.energyCost
+        ? ` Это задание утомительнее обычного урока: энергия −${task.energyCost}.`
+        : "";
+      return ["ШКОЛЬНЫЙ ДЕНЬ", `${task.subject} · урок ${state.lessonsToday + 1}`, `${task.question}${energyNote}`, "ШКОЛА · ЗАДАНИЕ"];
     }
     return ["ШКОЛЬНЫЙ ДЕНЬ", `Урок ${state.lessonsToday + 1} из 6`, "Внимательно слушай — знания пригодятся в следующем классе.", "ШКОЛА · УРОК"];
   }
