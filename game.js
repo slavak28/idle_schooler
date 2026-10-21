@@ -56,7 +56,7 @@ const ACTIONS = {
   },
   games: {
     name: "Видеоигры", icon: "🎮",
-    detail: "Любимая игра поднимает настроение.",
+    detail: "Сыграй три раунда в «Камень, ножницы, бумага»!",
     effects: "Радость +14 · энергия −6",
     run: (s) => { s.joy += 14; s.energy -= 6; }
   },
@@ -162,6 +162,18 @@ const elements = {
   choices: document.querySelector("#choices"),
   journal: document.querySelector("#journal-list"),
   victory: document.querySelector("#victory-dialog")
+};
+
+const miniGame = {
+  dialog: document.querySelector("#mini-game-dialog"),
+  status: document.querySelector("#mini-game-status"),
+  score: document.querySelector("#mini-game-score"),
+  choices: document.querySelector("#mini-game-choices"),
+  result: document.querySelector("#mini-game-result"),
+  continueButton: document.querySelector("#mini-game-continue"),
+  round: 0,
+  playerWins: 0,
+  computerWins: 0
 };
 
 function clamp(value, min = 0, max = 100) {
@@ -357,6 +369,55 @@ function doAction(key) {
   render();
 }
 
+function startMiniGame() {
+  miniGame.round = 0;
+  miniGame.playerWins = 0;
+  miniGame.computerWins = 0;
+  miniGame.status.textContent = "Сыграй три раунда. Выбирай свой ход!";
+  miniGame.result.hidden = true;
+  miniGame.continueButton.hidden = true;
+  miniGame.choices.hidden = false;
+  updateMiniGameScore();
+  miniGame.dialog.showModal();
+}
+
+function updateMiniGameScore() {
+  miniGame.score.textContent =
+    `Раунд ${miniGame.round + 1} из 3 · Ты ${miniGame.playerWins} : ${miniGame.computerWins} Компьютер`;
+}
+
+function playMiniGameRound(playerMove) {
+  const moves = ["камень", "бумага", "ножницы"];
+  const computerMove = moves[Math.floor(Math.random() * moves.length)];
+  const moveDifference = (moves.indexOf(playerMove) - moves.indexOf(computerMove) + moves.length) % moves.length;
+  miniGame.round += 1;
+
+  if (moveDifference === 1) {
+    miniGame.playerWins += 1;
+    miniGame.status.textContent = `Ты выбрал: ${playerMove}. Компьютер выбрал: ${computerMove}. Раунд за тобой!`;
+  } else if (moveDifference === 2) {
+    miniGame.computerWins += 1;
+    miniGame.status.textContent = `Ты выбрал: ${playerMove}. Компьютер выбрал: ${computerMove}. Раунд за компьютером.`;
+  } else {
+    miniGame.status.textContent = `Ты выбрал: ${playerMove}. Компьютер выбрал: ${computerMove}. Ничья!`;
+  }
+
+  if (miniGame.round === 3) {
+    miniGame.choices.hidden = true;
+    miniGame.score.textContent = `Итог · Ты ${miniGame.playerWins} : ${miniGame.computerWins} Компьютер`;
+    miniGame.result.textContent = miniGame.playerWins > miniGame.computerWins
+      ? "Ты выиграл! Отличная игра!"
+      : miniGame.playerWins < miniGame.computerWins
+        ? "В этот раз компьютер победил — ничего страшного!"
+        : "Ничья! Хорошая игра!";
+    miniGame.result.hidden = false;
+    miniGame.continueButton.hidden = false;
+    return;
+  }
+
+  updateMiniGameScore();
+}
+
 function sleep() {
   if (state.time !== 21) return;
   const hour = state.time;
@@ -455,7 +516,7 @@ function freeTimeChoices() {
     makeChoice("snack", { onClick: () => doAction("snack") });
     return;
   }
-  makeChoice("games");
+  makeChoice("games", { onClick: startMiniGame });
   makeChoice("friends");
   makeChoice("read");
   makeChoice("prepare", { disabled: state.energy < 12 });
@@ -615,6 +676,16 @@ document.querySelector("#victory-reset").addEventListener("click", () => {
   elements.victory.close();
   saveGame();
   render();
+});
+
+miniGame.choices.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-move]");
+  if (button) playMiniGameRound(button.dataset.move);
+});
+
+miniGame.continueButton.addEventListener("click", () => {
+  miniGame.dialog.close();
+  doAction("games");
 });
 
 render();

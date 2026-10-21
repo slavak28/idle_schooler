@@ -471,6 +471,10 @@ footer span { padding: 0 4px; color: var(--mint); }
 .modal-inner h2 { margin: 12px 0; font-size: 26px; }
 .modal-inner > p:not(.scene-kicker) { margin: 0 0 20px; color: #b4c0d8; line-height: 1.5; }
 .modal-inner .choice-button { width: 100%; text-align: center; }
+.modal-inner > .mini-game-score { color: #ffd166; font-weight: 700; }
+.mini-game-choices { margin-top: 12px; }
+.modal-inner > .mini-game-result { color: var(--mint); font-size: 18px; font-weight: 700; }
+.mini-game-continue { margin-top: 12px; }
 
 @media (max-width: 600px) {
   .game-shell { width: min(100% - 20px, 520px); padding-top: 12px; }

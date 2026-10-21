@@ -104,6 +104,22 @@
         <button class="choice-button primary-button" id="victory-reset" type="button">Начать новую историю</button>
       </div>
     </dialog>
-    <script src="game.js?v=4"></script>
+    <dialog class="modal mini-game-modal" id="mini-game-dialog" aria-labelledby="mini-game-title">
+      <div class="modal-inner">
+        <span class="victory-star" aria-hidden="true">🎮</span>
+        <p class="scene-kicker">МИНИ-ИГРА</p>
+        <h2 id="mini-game-title">Камень, ножницы, бумага</h2>
+        <p id="mini-game-status" aria-live="polite">Сыграй три раунда. Выбирай свой ход!</p>
+        <p class="mini-game-score" id="mini-game-score">Раунд 1 из 3 · Ты 0 : 0 Компьютер</p>
+        <div class="choices mini-game-choices" id="mini-game-choices">
+          <button class="choice-button answer-button" type="button" data-move="камень">✊ Камень</button>
+          <button class="choice-button answer-button" type="button" data-move="ножницы">✌️ Ножницы</button>
+          <button class="choice-button answer-button" type="button" data-move="бумага">✋ Бумага</button>
+        </div>
+        <p class="mini-game-result" id="mini-game-result" hidden></p>
+        <button class="choice-button primary-button mini-game-continue" id="mini-game-continue" type="button" hidden>Вернуться к занятиям</button>
+      </div>
+    </dialog>
+    <script src="game.js?v=5"></script>
   </body>
 </html>
