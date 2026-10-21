@@ -288,6 +288,14 @@ function getLessonTask() {
       energyCost: 14
     };
   }
+  if (lessonNumber === 6) {
+    return {
+      subject: "Биология",
+      question: "Какой орган помогает нам дышать?",
+      answer: "Лёгкие",
+      options: ["Сердце", "Лёгкие", "Желудок"]
+    };
+  }
   return null;
 }
 
