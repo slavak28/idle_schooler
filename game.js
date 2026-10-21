@@ -56,7 +56,7 @@ const ACTIONS = {
   },
   games: {
     name: "Видеоигры", icon: "🎮",
-    detail: "Сыграй три раунда в «Камень, ножницы, бумага»!",
+    detail: "Прыгай по островкам и постарайся не упасть!",
     effects: "Радость +14 · энергия −6",
     run: (s) => { s.joy += 14; s.energy -= 6; }
   },
@@ -167,13 +167,20 @@ const elements = {
 const miniGame = {
   dialog: document.querySelector("#mini-game-dialog"),
   status: document.querySelector("#mini-game-status"),
-  score: document.querySelector("#mini-game-score"),
-  choices: document.querySelector("#mini-game-choices"),
-  result: document.querySelector("#mini-game-result"),
+  canvas: document.querySelector("#platform-canvas"),
+  controls: document.querySelector(".platform-controls"),
   continueButton: document.querySelector("#mini-game-continue"),
-  round: 0,
-  playerWins: 0,
-  computerWins: 0
+  context: document.querySelector("#platform-canvas").getContext("2d"),
+  width: 360,
+  height: 480,
+  player: null,
+  platforms: [],
+  keys: new Set(),
+  heightScore: 0,
+  animationFrame: 0,
+  lastFrame: 0,
+  running: false,
+  finished: false
 };
 
 function clamp(value, min = 0, max = 100) {
@@ -370,52 +377,154 @@ function doAction(key) {
 }
 
 function startMiniGame() {
-  miniGame.round = 0;
-  miniGame.playerWins = 0;
-  miniGame.computerWins = 0;
-  miniGame.status.textContent = "Сыграй три раунда. Выбирай свой ход!";
-  miniGame.result.hidden = true;
+  miniGame.player = { x: 166, y: 385, width: 28, height: 34, velocityY: -8.8 };
+  miniGame.platforms = [
+    { x: 132, y: 430, width: 96 },
+    { x: 260, y: 360, width: 80 }
+  ];
+  miniGame.heightScore = 0;
+  miniGame.lastFrame = 0;
+  miniGame.finished = false;
+  miniGame.keys.clear();
+  let platformY = 280;
+  let platformX = 260;
+  while (platformY > -80) {
+    platformX = nextPlatformX(platformX);
+    miniGame.platforms.push({
+      x: platformX,
+      y: platformY,
+      width: 72 + Math.floor(Math.random() * 24)
+    });
+    platformY -= 64 + Math.floor(Math.random() * 18);
+  }
+  miniGame.status.textContent = "Прыгай по островкам, которые исчезают после прыжка! На iPad нажимай ◀ ▶, на клавиатуре — ← →.";
   miniGame.continueButton.hidden = true;
-  miniGame.choices.hidden = false;
-  updateMiniGameScore();
+  drawPlatformGame();
   miniGame.dialog.showModal();
+  miniGame.running = true;
+  miniGame.animationFrame = requestAnimationFrame(updatePlatformGame);
 }
 
-function updateMiniGameScore() {
-  miniGame.score.textContent =
-    `Раунд ${miniGame.round + 1} из 3 · Ты ${miniGame.playerWins} : ${miniGame.computerWins} Компьютер`;
+function nextPlatformX(previousX) {
+  const previousCenter = previousX + 42;
+  const nextCenter = Math.max(48, Math.min(312, previousCenter + (Math.random() * 180 - 90)));
+  return Math.round(nextCenter - 42);
 }
 
-function playMiniGameRound(playerMove) {
-  const moves = ["камень", "бумага", "ножницы"];
-  const computerMove = moves[Math.floor(Math.random() * moves.length)];
-  const moveDifference = (moves.indexOf(playerMove) - moves.indexOf(computerMove) + moves.length) % moves.length;
-  miniGame.round += 1;
+function updatePlatformGame(timestamp) {
+  if (!miniGame.running) return;
+  const elapsed = miniGame.lastFrame ? Math.min((timestamp - miniGame.lastFrame) / 16.67, 2) : 1;
+  miniGame.lastFrame = timestamp;
+  const player = miniGame.player;
+  const previousBottom = player.y + player.height;
 
-  if (moveDifference === 1) {
-    miniGame.playerWins += 1;
-    miniGame.status.textContent = `Ты выбрал: ${playerMove}. Компьютер выбрал: ${computerMove}. Раунд за тобой!`;
-  } else if (moveDifference === 2) {
-    miniGame.computerWins += 1;
-    miniGame.status.textContent = `Ты выбрал: ${playerMove}. Компьютер выбрал: ${computerMove}. Раунд за компьютером.`;
-  } else {
-    miniGame.status.textContent = `Ты выбрал: ${playerMove}. Компьютер выбрал: ${computerMove}. Ничья!`;
+  if (miniGame.keys.has("left")) player.x -= 4.4 * elapsed;
+  if (miniGame.keys.has("right")) player.x += 4.4 * elapsed;
+  player.x = (player.x + miniGame.width) % miniGame.width;
+  player.velocityY += 0.34 * elapsed;
+  player.y += player.velocityY * elapsed;
+
+  if (player.velocityY > 0) {
+    for (const platform of miniGame.platforms) {
+      const playerBottom = player.y + player.height;
+      if (previousBottom <= platform.y && playerBottom >= platform.y &&
+          player.x + player.width > platform.x && player.x < platform.x + platform.width) {
+        player.y = platform.y - player.height;
+        player.velocityY = -8.8;
+        miniGame.platforms.splice(miniGame.platforms.indexOf(platform), 1);
+        break;
+      }
+    }
   }
 
-  if (miniGame.round === 3) {
-    miniGame.choices.hidden = true;
-    miniGame.score.textContent = `Итог · Ты ${miniGame.playerWins} : ${miniGame.computerWins} Компьютер`;
-    miniGame.result.textContent = miniGame.playerWins > miniGame.computerWins
-      ? "Ты выиграл! Отличная игра!"
-      : miniGame.playerWins < miniGame.computerWins
-        ? "В этот раз компьютер победил — ничего страшного!"
-        : "Ничья! Хорошая игра!";
-    miniGame.result.hidden = false;
-    miniGame.continueButton.hidden = false;
+  if (player.y < miniGame.height * 0.4 && player.velocityY < 0) {
+    const shift = miniGame.height * 0.4 - player.y;
+    player.y += shift;
+    miniGame.heightScore += shift;
+    for (const platform of miniGame.platforms) platform.y += shift;
+    while (Math.min(...miniGame.platforms.map((platform) => platform.y)) > -24) {
+      const highest = miniGame.platforms.reduce((top, platform) => platform.y < top.y ? platform : top);
+      miniGame.platforms.push({
+        x: nextPlatformX(highest.x),
+        y: highest.y - 64 - Math.floor(Math.random() * 18),
+        width: 72 + Math.floor(Math.random() * 24)
+      });
+    }
+    miniGame.platforms = miniGame.platforms.filter((platform) => platform.y < miniGame.height + 20);
+  }
+
+  if (miniGame.heightScore >= 1400) {
+    finishPlatformGame(true);
     return;
   }
 
-  updateMiniGameScore();
+  if (player.y > miniGame.height + 24) {
+    finishPlatformGame(false);
+    return;
+  }
+
+  drawPlatformGame();
+  miniGame.animationFrame = requestAnimationFrame(updatePlatformGame);
+}
+
+function drawPlatformGame() {
+  const { context, width, height, player } = miniGame;
+  context.clearRect(0, 0, width, height);
+  context.fillStyle = "#172543";
+  context.fillRect(0, 0, width, height);
+
+  for (let i = 0; i < 7; i += 1) {
+    const x = (i * 67 + 22) % width;
+    const y = (i * 83 + 24) % height;
+    context.fillStyle = "#ffffff80";
+    context.fillRect(x, y, 3, 3);
+    context.fillRect(x + 6, y + 8, 2, 2);
+  }
+
+  for (const platform of miniGame.platforms) {
+    context.fillStyle = "#375f43";
+    context.fillRect(platform.x, platform.y + 7, platform.width, 9);
+    context.fillStyle = "#5de2b1";
+    context.fillRect(platform.x, platform.y, platform.width, 8);
+    context.fillStyle = "#a5f3d4";
+    context.fillRect(platform.x + 5, platform.y + 2, platform.width - 10, 2);
+  }
+
+  context.fillStyle = "#ffd166";
+  context.fillRect(player.x + 5, player.y, 18, 17);
+  context.fillStyle = "#f4b183";
+  context.fillRect(player.x + 3, player.y + 14, 22, 14);
+  context.fillStyle = "#355070";
+  context.fillRect(player.x, player.y + 27, 12, 7);
+  context.fillRect(player.x + 16, player.y + 27, 12, 7);
+  context.fillStyle = "#18243b";
+  context.fillRect(player.x + 9, player.y + 6, 3, 3);
+  context.fillRect(player.x + 18, player.y + 6, 3, 3);
+
+  context.fillStyle = "#f5f4ff";
+  context.font = "bold 16px -apple-system, BlinkMacSystemFont, sans-serif";
+  context.fillText(`Высота: ${Math.floor(miniGame.heightScore)} м`, 14, 26);
+  context.fillStyle = "#b4c0d8";
+  context.font = "12px -apple-system, BlinkMacSystemFont, sans-serif";
+  context.fillText("Цель: 1400 м", 14, 44);
+}
+
+function finishPlatformGame(won) {
+  miniGame.running = false;
+  miniGame.finished = true;
+  cancelAnimationFrame(miniGame.animationFrame);
+  miniGame.keys.clear();
+  miniGame.status.textContent = won
+    ? "Ура! Ты добрался до самой высокой платформы!"
+    : "Ты упал с островка. Ничего страшного — можно продолжить день!";
+  miniGame.continueButton.hidden = false;
+  drawPlatformGame();
+}
+
+function stopPlatformGame() {
+  miniGame.running = false;
+  miniGame.keys.clear();
+  cancelAnimationFrame(miniGame.animationFrame);
 }
 
 function sleep() {
@@ -678,12 +787,45 @@ document.querySelector("#victory-reset").addEventListener("click", () => {
   render();
 });
 
-miniGame.choices.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-move]");
-  if (button) playMiniGameRound(button.dataset.move);
+document.addEventListener("keydown", (event) => {
+  if (!miniGame.dialog.open) return;
+  if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+    event.preventDefault();
+    miniGame.keys.add("left");
+  } else if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+    event.preventDefault();
+    miniGame.keys.add("right");
+  }
 });
 
+document.addEventListener("keyup", (event) => {
+  if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") miniGame.keys.delete("left");
+  if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") miniGame.keys.delete("right");
+});
+
+miniGame.controls.addEventListener("pointerdown", (event) => {
+  const button = event.target.closest("[data-direction]");
+  if (!button) return;
+  event.preventDefault();
+  button.setPointerCapture(event.pointerId);
+  miniGame.keys.add(button.dataset.direction);
+});
+
+miniGame.controls.addEventListener("pointerup", (event) => {
+  const button = event.target.closest("[data-direction]");
+  if (button) miniGame.keys.delete(button.dataset.direction);
+});
+
+miniGame.controls.addEventListener("pointercancel", (event) => {
+  const button = event.target.closest("[data-direction]");
+  if (button) miniGame.keys.delete(button.dataset.direction);
+});
+
+miniGame.dialog.addEventListener("cancel", stopPlatformGame);
+miniGame.dialog.addEventListener("close", stopPlatformGame);
+
 miniGame.continueButton.addEventListener("click", () => {
+  if (!miniGame.finished) return;
   miniGame.dialog.close();
   doAction("games");
 });

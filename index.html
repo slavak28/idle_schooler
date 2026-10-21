@@ -108,18 +108,18 @@
       <div class="modal-inner">
         <span class="victory-star" aria-hidden="true">🎮</span>
         <p class="scene-kicker">МИНИ-ИГРА</p>
-        <h2 id="mini-game-title">Камень, ножницы, бумага</h2>
-        <p id="mini-game-status" aria-live="polite">Сыграй три раунда. Выбирай свой ход!</p>
-        <p class="mini-game-score" id="mini-game-score">Раунд 1 из 3 · Ты 0 : 0 Компьютер</p>
-        <div class="choices mini-game-choices" id="mini-game-choices">
-          <button class="choice-button answer-button" type="button" data-move="камень">✊ Камень</button>
-          <button class="choice-button answer-button" type="button" data-move="ножницы">✌️ Ножницы</button>
-          <button class="choice-button answer-button" type="button" data-move="бумага">✋ Бумага</button>
+        <h2 id="mini-game-title">Прыгай по островкам!</h2>
+        <p id="mini-game-status" aria-live="polite">Прыгай по островкам, которые исчезают после прыжка! На iPad нажимай ◀ ▶, на клавиатуре — ← →.</p>
+        <div class="platform-game">
+          <canvas id="platform-canvas" width="360" height="480" aria-label="Игра: прыгай по островкам и не падай"></canvas>
+          <div class="platform-controls" aria-label="Управление движением">
+            <button class="platform-control" type="button" data-direction="left" aria-label="Двигаться влево">◀</button>
+            <button class="platform-control" type="button" data-direction="right" aria-label="Двигаться вправо">▶</button>
+          </div>
         </div>
-        <p class="mini-game-result" id="mini-game-result" hidden></p>
         <button class="choice-button primary-button mini-game-continue" id="mini-game-continue" type="button" hidden>Вернуться к занятиям</button>
       </div>
     </dialog>
-    <script src="game.js?v=5"></script>
+    <script src="game.js?v=8"></script>
   </body>
 </html>
