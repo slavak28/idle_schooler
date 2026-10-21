@@ -279,6 +279,15 @@ function getLessonTask() {
       energyCost: 14
     };
   }
+  if (lessonNumber === 5) {
+    return {
+      subject: "Физкультура",
+      question: "За минуту спортсмен делает 20 приседаний. Сколько приседаний он сделает за 3 минуты?",
+      answer: "60",
+      options: ["40", "60", "80"],
+      energyCost: 14
+    };
+  }
   return null;
 }
 
