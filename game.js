@@ -565,6 +565,7 @@ function finishPlatformGame(won) {
   miniGame.keys.clear();
   miniGame.finishPlatform = null;
   if (won) {
+    miniGame.platforms = [];
     miniGame.finishPlatform = { x: 48, y: 340, width: 264 };
     miniGame.player.x = 96;
     miniGame.player.y = miniGame.finishPlatform.y - miniGame.player.height;
