@@ -188,6 +188,35 @@ const miniGame = {
   finished: false
 };
 
+const PLAYER_SPRITE = [
+  "....HHHHHH....",
+  "..HHHHHHHHHH..",
+  ".HHHHBBBBHHHH.",
+  ".HHHFFFFFHHH..",
+  ".HHHFEFEFHHH..",
+  ".HHHFFFFFHHH..",
+  ".HHHHFFFFHHHH.",
+  "..HHHHHHHHHH..",
+  "...HHHHHHHH...",
+  "..AAAAHHHHAAAA",
+  "..AAAAHHHHAAAA",
+  "...AAHHHHAA...",
+  "....CCCCCC....",
+  "....CCCCCC....",
+  "....LLLLLL....",
+  "...LLL..LLL...",
+  "...LLL..LLL..."
+];
+const PLAYER_PALETTE = {
+  H: "#080f1b",
+  B: "#24394d",
+  F: "#d99a5b",
+  E: "#10131a",
+  A: "#c47b48",
+  C: "#101722",
+  L: "#080d14"
+};
+
 function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
@@ -502,16 +531,14 @@ function drawPlatformGame() {
     context.fillRect(platform.x + 5, platform.y + 2, platform.width - 10, 2);
   }
 
-  context.fillStyle = "#ffd166";
-  context.fillRect(player.x + 5, player.y, 18, 17);
-  context.fillStyle = "#f4b183";
-  context.fillRect(player.x + 3, player.y + 14, 22, 14);
-  context.fillStyle = "#355070";
-  context.fillRect(player.x, player.y + 27, 12, 7);
-  context.fillRect(player.x + 16, player.y + 27, 12, 7);
-  context.fillStyle = "#18243b";
-  context.fillRect(player.x + 9, player.y + 6, 3, 3);
-  context.fillRect(player.x + 18, player.y + 6, 3, 3);
+  for (let row = 0; row < PLAYER_SPRITE.length; row += 1) {
+    for (let column = 0; column < PLAYER_SPRITE[row].length; column += 1) {
+      const color = PLAYER_PALETTE[PLAYER_SPRITE[row][column]];
+      if (!color) continue;
+      context.fillStyle = color;
+      context.fillRect(player.x + column * 2, player.y + row * 2, 2, 2);
+    }
+  }
 
   context.fillStyle = "#f5f4ff";
   context.font = "bold 16px -apple-system, BlinkMacSystemFont, sans-serif";
