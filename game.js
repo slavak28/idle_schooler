@@ -181,6 +181,7 @@ const miniGame = {
   height: 480,
   player: null,
   platforms: [],
+  finishPlatform: null,
   keys: new Set(),
   heightScore: 0,
   animationFrame: 0,
@@ -398,6 +399,7 @@ function startMiniGame() {
     { x: 132, y: 430, width: 96 },
     { x: 260, y: 360, width: 80 }
   ];
+  miniGame.finishPlatform = null;
   miniGame.heightScore = 0;
   miniGame.lastFrame = 0;
   miniGame.finished = false;
@@ -507,6 +509,8 @@ function drawPlatformGame() {
     context.fillRect(platform.x + 5, platform.y + 2, platform.width - 10, 2);
   }
 
+  if (miniGame.finishPlatform) drawFinishPlatform(context, miniGame.finishPlatform);
+
   const spriteWidth = 40;
   const spriteHeight = 56;
   if (miniGame.playerSprite.complete && miniGame.playerSprite.naturalWidth > 0) {
@@ -527,13 +531,46 @@ function drawPlatformGame() {
   context.fillText("Цель: 1400 м", 14, 44);
 }
 
+function drawFinishPlatform(context, platform) {
+  context.fillStyle = "#294936";
+  context.fillRect(platform.x + 8, platform.y + 17, platform.width - 16, 15);
+  context.fillStyle = "#479360";
+  context.fillRect(platform.x, platform.y + 7, platform.width, 12);
+  context.fillStyle = "#75e6a9";
+  context.fillRect(platform.x, platform.y, platform.width, 10);
+  context.fillStyle = "#bcffd1";
+  context.fillRect(platform.x + 12, platform.y + 2, platform.width - 24, 3);
+
+  const signX = platform.x + platform.width * 0.72;
+  context.fillStyle = "#c9aa71";
+  context.fillRect(signX - 2, platform.y - 60, 4, 61);
+  context.fillStyle = "#ffd166";
+  context.fillRect(signX - 39, platform.y - 86, 78, 28);
+  context.fillStyle = "#9b642a";
+  context.fillRect(signX - 39, platform.y - 86, 78, 4);
+  context.fillRect(signX - 39, platform.y - 62, 78, 4);
+  context.fillStyle = "#172543";
+  context.font = "bold 16px -apple-system, BlinkMacSystemFont, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText("FINISH", signX, platform.y - 72);
+  context.textAlign = "start";
+  context.textBaseline = "alphabetic";
+}
+
 function finishPlatformGame(won) {
   miniGame.running = false;
   miniGame.finished = true;
   cancelAnimationFrame(miniGame.animationFrame);
   miniGame.keys.clear();
+  if (won) {
+    miniGame.finishPlatform = { x: 48, y: 340, width: 264 };
+    miniGame.player.x = 96;
+    miniGame.player.y = miniGame.finishPlatform.y - miniGame.player.height;
+    miniGame.player.velocityY = 0;
+  }
   miniGame.status.textContent = won
-    ? "Ура! Ты добрался до самой высокой платформы!"
+    ? "Ура! Ты добрался до финиша!"
     : "Ты упал с островка. Ничего страшного — можно продолжить день!";
   miniGame.continueButton.hidden = false;
   drawPlatformGame();
