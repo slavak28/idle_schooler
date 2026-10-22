@@ -563,6 +563,7 @@ function finishPlatformGame(won) {
   miniGame.finished = true;
   cancelAnimationFrame(miniGame.animationFrame);
   miniGame.keys.clear();
+  miniGame.finishPlatform = null;
   if (won) {
     miniGame.finishPlatform = { x: 48, y: 340, width: 264 };
     miniGame.player.x = 96;
