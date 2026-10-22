@@ -173,6 +173,7 @@ const miniGame = {
   dialog: document.querySelector("#mini-game-dialog"),
   status: document.querySelector("#mini-game-status"),
   canvas: document.querySelector("#platform-canvas"),
+  playerSprite: new Image(),
   controls: document.querySelector(".platform-controls"),
   continueButton: document.querySelector("#mini-game-continue"),
   context: document.querySelector("#platform-canvas").getContext("2d"),
@@ -187,35 +188,10 @@ const miniGame = {
   running: false,
   finished: false
 };
-
-const PLAYER_SPRITE = [
-  "....HHHHHH....",
-  "..HHHHHHHHHH..",
-  ".HHHHBBBBHHHH.",
-  ".HHHFFFFFHHH..",
-  ".HHHFEFEFHHH..",
-  ".HHHFFFFFHHH..",
-  ".HHHHFFFFHHHH.",
-  "..HHHHHHHHHH..",
-  "...HHHHHHHH...",
-  "..AAAAHHHHAAAA",
-  "..AAAAHHHHAAAA",
-  "...AAHHHHAA...",
-  "....CCCCCC....",
-  "....CCCCCC....",
-  "....LLLLLL....",
-  "...LLL..LLL...",
-  "...LLL..LLL..."
-];
-const PLAYER_PALETTE = {
-  H: "#080f1b",
-  B: "#24394d",
-  F: "#d99a5b",
-  E: "#10131a",
-  A: "#c47b48",
-  C: "#101722",
-  L: "#080d14"
-};
+miniGame.playerSprite.addEventListener("error", () => {
+  console.error("Не удалось загрузить изображение персонажа мини-игры.");
+});
+miniGame.playerSprite.src = "character-minigame.png";
 
 function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
@@ -417,7 +393,7 @@ function canAffordEnergy(cost) {
 
 function startMiniGame() {
   if (!canAffordEnergy(ACTIONS.games.energyCost)) return;
-  miniGame.player = { x: 166, y: 385, width: 28, height: 34, velocityY: -8.8 };
+  miniGame.player = { x: 163, y: 386, width: 34, height: 44, velocityY: -8.8 };
   miniGame.platforms = [
     { x: 132, y: 430, width: 96 },
     { x: 260, y: 360, width: 80 }
@@ -531,13 +507,16 @@ function drawPlatformGame() {
     context.fillRect(platform.x + 5, platform.y + 2, platform.width - 10, 2);
   }
 
-  for (let row = 0; row < PLAYER_SPRITE.length; row += 1) {
-    for (let column = 0; column < PLAYER_SPRITE[row].length; column += 1) {
-      const color = PLAYER_PALETTE[PLAYER_SPRITE[row][column]];
-      if (!color) continue;
-      context.fillStyle = color;
-      context.fillRect(player.x + column * 2, player.y + row * 2, 2, 2);
-    }
+  const spriteWidth = 40;
+  const spriteHeight = 56;
+  if (miniGame.playerSprite.complete && miniGame.playerSprite.naturalWidth > 0) {
+    context.drawImage(
+      miniGame.playerSprite,
+      player.x + (player.width - spriteWidth) / 2,
+      player.y + player.height - spriteHeight,
+      spriteWidth,
+      spriteHeight
+    );
   }
 
   context.fillStyle = "#f5f4ff";
