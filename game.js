@@ -58,30 +58,35 @@ const ACTIONS = {
     name: "Видеоигры", icon: "🎮",
     detail: "Прыгай по островкам и постарайся не упасть!",
     effects: "Радость +14 · энергия −6",
+    energyCost: 6,
     run: (s) => { s.joy += 14; s.energy -= 6; }
   },
   friends: {
     name: "Встретиться с друзьями", icon: "🧑‍🤝‍🧑",
     detail: "Прогулка и разговоры — отличный способ отдохнуть.",
     effects: "Радость +15 · энергия −8",
+    energyCost: 8,
     run: (s) => { s.joy += 15; s.energy -= 8; }
   },
   read: {
     name: "Почитать", icon: "📚",
     detail: "Чтение понемногу помогает в учёбе.",
     effects: "Учёба +4 · радость +2 · энергия −7",
+    energyCost: 7,
     run: (s) => { addStudy(4); s.joy += 2; s.energy -= 7; }
   },
   prepare: {
     name: "Сделать уроки", icon: "✏️",
     detail: "Сосредоточенная подготовка полезна, но утомляет.",
     effects: "Учёба +9 · радость −4 · энергия −13",
+    energyCost: 13,
     run: (s) => { addStudy(9); s.joy -= 4; s.energy -= 13; }
   },
   sport: {
     name: "Заняться спортом", icon: "🏃",
     detail: "Усталость сейчас — больше выносливости завтра.",
     effects: "Радость +3 · энергия −14 · здоровье +2 · тренировка",
+    energyCost: 14,
     run: (s) => {
       s.joy += 3;
       s.energy -= 14;
@@ -349,6 +354,7 @@ function doLesson(taskResult) {
   const studyGain = 9 + Math.floor((state.grade - 1) * 0.45);
   const bonus = taskResult?.correct ? 3 : 0;
   const lessonEnergyCost = taskResult?.energyCost ?? 8;
+  if (!canAffordEnergy(lessonEnergyCost)) return;
   addStudy(studyGain + bonus);
   state.energy -= lessonEnergyCost;
   state.joy -= 1;
@@ -367,8 +373,8 @@ function doLesson(taskResult) {
 function doAction(key) {
   if (!ACTIONS[key]) return;
   const action = ACTIONS[key];
+  if (!canAffordEnergy(action.energyCost ?? 0)) return;
   const hour = state.time;
-  if ((key === "prepare" || key === "sport") && state.energy < 12) return;
   action.run(state);
   applyHourlyNeeds();
   record(`${action.name}.`, hour);
@@ -376,7 +382,12 @@ function doAction(key) {
   render();
 }
 
+function canAffordEnergy(cost) {
+  return state.energy >= cost;
+}
+
 function startMiniGame() {
+  if (!canAffordEnergy(ACTIONS.games.energyCost)) return;
   miniGame.player = { x: 166, y: 385, width: 28, height: 34, velocityY: -8.8 };
   miniGame.platforms = [
     { x: 132, y: 430, width: 96 },
@@ -560,7 +571,8 @@ function makeChoice(actionKey, overrides = {}) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = `choice-button${overrides.primary ? " primary-button" : ""}`;
-  button.disabled = Boolean(overrides.disabled);
+  button.disabled = Boolean(overrides.disabled) ||
+    !canAffordEnergy(overrides.requiredEnergy ?? action.energyCost ?? 0);
   button.innerHTML = `
     <span class="choice-topline">
       <span class="choice-name">${overrides.name || action.name}</span>
@@ -629,8 +641,8 @@ function freeTimeChoices() {
   makeChoice("games", { onClick: startMiniGame });
   makeChoice("friends");
   makeChoice("read");
-  makeChoice("prepare", { disabled: state.energy < 12 });
-  makeChoice("sport", { disabled: state.energy < 12 });
+  makeChoice("prepare");
+  makeChoice("sport");
   makeChoice("rest");
   if (state.time >= 17 && state.time <= 20) {
     makeChoice("dinner", { onClick: () => doAction("dinner") });
@@ -649,12 +661,14 @@ function renderChoices() {
     const lessonNumber = state.lessonsToday + 1;
     const gain = 9 + Math.floor((state.grade - 1) * 0.45);
     const task = getLessonTask();
+    const energyCost = task?.energyCost ?? 8;
     if (task) {
       for (const option of answerOptions(task)) {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "choice-button answer-button";
         button.textContent = option;
+        button.disabled = !canAffordEnergy(energyCost);
         button.addEventListener("click", () => {
           const selected = task.options ? option : Number.parseInt(option, 10);
           doLesson({
@@ -671,8 +685,15 @@ function renderChoices() {
         icon: "🏫",
         detail: "Учитель объясняет новую тему. Каждый урок немного утомляет.",
         effects: `Учёба +${gain} · энергия −8 · радость −1`,
-        disabled: false,
+        requiredEnergy: energyCost,
         onClick: () => doLesson()
+      });
+    }
+    if (!canAffordEnergy(energyCost)) {
+      makeChoice("rest", {
+        name: "Пропустить урок и отдохнуть",
+        detail: "Энергии не хватает для урока. Можно отдохнуть и продолжить день.",
+        onClick: () => doAction("rest")
       });
     }
   } else {
