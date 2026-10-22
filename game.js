@@ -401,6 +401,7 @@ function startMiniGame() {
   miniGame.continueButton.hidden = true;
   drawPlatformGame();
   miniGame.dialog.showModal();
+  miniGame.canvas.focus({ preventScroll: true });
   miniGame.running = true;
   miniGame.animationFrame = requestAnimationFrame(updatePlatformGame);
 }
@@ -787,21 +788,22 @@ document.querySelector("#victory-reset").addEventListener("click", () => {
   render();
 });
 
-document.addEventListener("keydown", (event) => {
-  if (!miniGame.dialog.open) return;
-  if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+miniGame.dialog.addEventListener("keydown", (event) => {
+  if (event.code === "ArrowLeft" || event.code === "KeyA") {
     event.preventDefault();
     miniGame.keys.add("left");
-  } else if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+  } else if (event.code === "ArrowRight" || event.code === "KeyD") {
     event.preventDefault();
     miniGame.keys.add("right");
   }
 });
 
-document.addEventListener("keyup", (event) => {
-  if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") miniGame.keys.delete("left");
-  if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") miniGame.keys.delete("right");
+miniGame.dialog.addEventListener("keyup", (event) => {
+  if (event.code === "ArrowLeft" || event.code === "KeyA") miniGame.keys.delete("left");
+  if (event.code === "ArrowRight" || event.code === "KeyD") miniGame.keys.delete("right");
 });
+
+window.addEventListener("blur", () => miniGame.keys.clear());
 
 miniGame.controls.addEventListener("pointerdown", (event) => {
   const button = event.target.closest("[data-direction]");

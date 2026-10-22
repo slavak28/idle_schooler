@@ -483,6 +483,7 @@ footer span { padding: 0 4px; color: var(--mint); }
   background: #172543;
   image-rendering: pixelated;
 }
+#platform-canvas:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
 .platform-controls { display: flex; justify-content: space-between; gap: 14px; margin-top: 10px; }
 .platform-control {
   min-width: 92px;
